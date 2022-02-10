@@ -30,19 +30,42 @@ def create_model(path):
 
     f = open(path, 'r')
     ## You shouldn't visit a token more than once
+    count=0
     for l in f.readlines():
         tokens = preprocess(l)
         if len(tokens) == 0:
             continue
         for token in tokens:
             # FIXME Update the counts for unigrams and bigrams
+            for n in token:
+                unigrams[n] = unigrams.get(n, 0) + 1
+                
+                if count == 0:
+                    pass
+                else:
+                    bigrams[prev, n] = bigrams.get((prev,n), 0) +1
+
+                count+=1
+                prev = n
+                
             pass
 
     # FIXME After calculating the counts, calculate the smoothed log probabilities
+    #newDict = collections.defaultdict(int)
+    #newDict = dict()
+    newDict = {}
+    
+    alphArray = 'abcdefghijklmnopqrstuvwxyz'
+    for n in alphArray:
+        for i in alphArray:
+            value = (bigrams.get((n,i), 0)+1)/(unigrams.get(n, 0)+26)
+            newDict[n, i] = value
+
 
     # return the actual model: bigram (smoothed log) probabilities and unigram counts (the latter to smooth
     # unseen bigrams in predict(...)
-    return None
+
+    return newDict
 
 
 def predict(file, model_en, model_es):
@@ -54,6 +77,33 @@ def predict(file, model_en, model_es):
     # - you may want to use an additional method to calculate the probablity of a text given a model (and call it twice)
 
     # prediction should be either 'English' or 'Spanish'
+
+    model = create_model(file)
+
+    # res = {key: model[key] - model_en.get(key, 0)
+    #                    for key in model.keys()}
+
+    # res2 = {key: model[key] - model_es.get(key, 0)
+    #                    for key in model.keys()}
+
+    res = {key:abs(model_en.get(key, 0) - model.get(key,0))
+                       for key in model.keys()}
+    res2 = {key:abs(model_es.get(key, 0) - model.get(key,0))
+                       for key in model.keys()}
+    
+
+    value = 0
+    value2 = 0
+    for n in res.values():
+        value += n
+    for n in res2.values():
+        value2 += n
+    #print("value: ", value, " values2: ", value2)
+    if value < value2:
+        prediction = 'English'
+    else:
+        prediction = 'Spanish'
+
     return prediction
 
 
